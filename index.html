@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Job Trust System</title>
+
+<style>
+    body {
+        margin: 0;
+        font-family: 'Segoe UI', sans-serif;
+        background: linear-gradient(135deg, #0f172a, #1e293b);
+        color: white;
+    }
+
+    .container {
+        max-width: 800px;
+        margin: 50px auto;
+        padding: 30px;
+        background: rgba(255,255,255,0.05);
+        border-radius: 20px;
+        box-shadow: 0 0 30px rgba(0,0,0,0.5);
+        backdrop-filter: blur(10px);
+    }
+
+    h1 {
+        text-align: center;
+        font-size: 32px;
+        margin-bottom: 10px;
+        color: #38bdf8;
+    }
+
+    p {
+        text-align: center;
+        color: #94a3b8;
+        margin-bottom: 30px;
+    }
+
+    input, textarea {
+        width: 100%;
+        padding: 12px;
+        margin-top: 10px;
+        margin-bottom: 15px;
+        border-radius: 10px;
+        border: none;
+        outline: none;
+        background: #1e293b;
+        color: white;
+    }
+
+    textarea {
+        height: 120px;
+        resize: none;
+    }
+
+    button {
+        width: 100%;
+        padding: 12px;
+        background: linear-gradient(90deg, #38bdf8, #6366f1);
+        border: none;
+        border-radius: 10px;
+        color: white;
+        font-size: 16px;
+        cursor: pointer;
+        transition: 0.3s;
+    }
+
+    button:hover {
+        transform: scale(1.03);
+    }
+
+    .result-box {
+        margin-top: 25px;
+        padding: 20px;
+        border-radius: 15px;
+        background: #0f172a;
+        border-left: 5px solid #38bdf8;
+    }
+
+    .score {
+        font-size: 22px;
+        font-weight: bold;
+    }
+
+    .safe { color: #22c55e; }
+    .warn { color: #facc15; }
+    .danger { color: #ef4444; }
+
+    .badge {
+        display: inline-block;
+        padding: 5px 10px;
+        border-radius: 8px;
+        margin-top: 10px;
+        font-size: 14px;
+    }
+
+    .blockchain {
+        margin-top: 10px;
+        font-size: 14px;
+        color: #60a5fa;
+    }
+</style>
+</head>
+
+<body>
+
+<div class="container">
+    <h1>🧠 Job Trust System</h1>
+    <p>AI + Blockchain powered job verification</p>
+
+    <input id="company" placeholder="Enter Company Name">
+
+    <textarea id="jobText" placeholder="Paste job description here..."></textarea>
+
+    <button onclick="checkJob()">Analyze Job</button>
+
+    <div id="result" class="result-box" style="display:none;"></div>
+</div>
+
+<script>
+async function checkJob() {
+    const company = document.getElementById("company").value;
+    const jobText = document.getElementById("jobText").value;
+
+    const res = await fetch("http://localhost:3000/check", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ company, jobText })
+    });
+
+    const data = await res.json();
+
+    let colorClass = "safe";
+    if (data.score < 80) colorClass = "warn";
+    if (data.score < 50) colorClass = "danger";
+
+    document.getElementById("result").style.display = "block";
+
+    document.getElementById("result").innerHTML = `
+        <div class="score ${colorClass}">
+            🧠 Trust Score: ${data.score}
+        </div>
+
+        <div class="badge">
+            ${data.label}
+        </div>
+
+        <div class="blockchain">
+            ⛓️ Blockchain Status: ${data.blockchainVerified}
+        </div>
+    `;
+}
+</script>
+
+</body>
+</html>
