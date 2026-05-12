@@ -179,6 +179,7 @@ class HeuristicsEngine {
       score: Math.round(totalScore),
       label,
       risk,
+      companyName,
       industry,
       contacts: contacts
     };

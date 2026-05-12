@@ -71,6 +71,24 @@ h1 {
   gap: 10px;
 }
 
+.workspace {
+  display: grid;
+  grid-template-columns: minmax(250px, 0.9fr) minmax(320px, 1.25fr);
+  gap: 18px;
+  align-items: start;
+}
+
+.tool-column {
+  min-width: 0;
+}
+
+h2 {
+  margin: 0 0 14px;
+  color: #e0f2fe;
+  font-size: 18px;
+  line-height: 1.2;
+}
+
 label {
   color: #dbeafe;
   font-size: 14px;
@@ -87,6 +105,10 @@ textarea {
   background: #0f172a;
   color: var(--text);
   font: inherit;
+}
+
+input[type="file"] {
+  padding: 10px;
 }
 
 textarea {
@@ -143,6 +165,40 @@ button:disabled {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
   margin: 4px 0;
+}
+
+.poster-preview {
+  display: grid;
+  place-items: center;
+  min-height: 270px;
+  overflow: hidden;
+  padding: 14px;
+  border: 1px dashed #475569;
+  border-radius: 8px;
+  background: #0f172a;
+  color: var(--muted);
+  text-align: center;
+}
+
+.poster-preview img {
+  display: block;
+  max-width: 100%;
+  max-height: 330px;
+  object-fit: contain;
+}
+
+.poster-preview .pdf-preview {
+  display: grid;
+  gap: 8px;
+  justify-items: center;
+  color: #dbeafe;
+}
+
+.poster-preview .file-name {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  color: var(--muted);
+  font-size: 13px;
 }
 
 .result-box {
@@ -232,13 +288,41 @@ button:disabled {
   font-size: 13px;
 }
 
-@media (max-width: 560px) {
+.text-preview {
+  margin-top: 14px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.text-preview summary {
+  cursor: pointer;
+  color: #dbeafe;
+  font-weight: 700;
+}
+
+.text-preview pre {
+  max-height: 220px;
+  overflow: auto;
+  margin: 10px 0 0;
+  padding: 12px;
+  border-radius: 8px;
+  background: #020617;
+  color: #cbd5e1;
+  font-family: Consolas, "Courier New", monospace;
+  white-space: pre-wrap;
+}
+
+@media (max-width: 760px) {
   .app-shell {
     width: min(100% - 20px, 920px);
     padding: 16px 0;
   }
 
   .sample-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .workspace {
     grid-template-columns: 1fr;
   }
 }

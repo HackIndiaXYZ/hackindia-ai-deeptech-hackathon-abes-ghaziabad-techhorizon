@@ -3,6 +3,10 @@ const companyField = document.getElementById("company");
 const jobTextField = document.getElementById("jobText");
 const resultBox = document.getElementById("result");
 const analyzeButton = document.getElementById("analyzeButton");
+const posterForm = document.getElementById("posterForm");
+const posterFile = document.getElementById("posterFile");
+const posterPreview = document.getElementById("posterPreview");
+const posterAnalyzeButton = document.getElementById("posterAnalyzeButton");
 
 const samples = {
   legit: {
@@ -64,6 +68,44 @@ async function checkJob() {
   }
 }
 
+async function analyzePoster() {
+  const file = posterFile.files?.[0];
+
+  if (!file) {
+    displayError("Upload a PDF or image poster first.");
+    return;
+  }
+
+  const originalText = posterAnalyzeButton.textContent;
+  posterAnalyzeButton.textContent = file.type === "application/pdf" ? "Reading PDF..." : "Reading Image...";
+  posterAnalyzeButton.disabled = true;
+  clearResult();
+
+  try {
+    const formData = new FormData();
+    formData.append("poster", file);
+
+    const response = await fetch("/analyze-poster", {
+      method: "POST",
+      body: formData
+    });
+
+    const data = await response.json().catch(() => null);
+
+    if (!response.ok) {
+      throw new Error(data?.error || data?.message || `Request failed with HTTP ${response.status}`);
+    }
+
+    displayResults(data);
+  } catch (error) {
+    console.error("Poster analysis failed:", error);
+    displayError(`${error.message} For image posters, use a clear screenshot with readable English text.`);
+  } finally {
+    posterAnalyzeButton.textContent = originalText;
+    posterAnalyzeButton.disabled = false;
+  }
+}
+
 function displayResults(data) {
   const colorClass = data.score < 50 ? "danger" : data.score < 80 ? "warn" : "safe";
   const risk = data.risk || "unknown";
@@ -84,6 +126,10 @@ function displayResults(data) {
   if (data.details?.textQuality?.issues > 0) {
     resultBox.append(createTextElement("div", `Text quality issues detected: ${data.details.textQuality.issues}`, "quality-note"));
   }
+
+  if (data.extracted?.textPreview) {
+    resultBox.append(buildTextPreview(data.extracted.textPreview));
+  }
 }
 
 function buildSummary(data) {
@@ -91,11 +137,13 @@ function buildSummary(data) {
   summary.className = "result-grid";
 
   const rows = [
+    ...(data.companyName || data.extracted?.companyName ? [["Detected Company", data.companyName || data.extracted.companyName]] : []),
     ["Company", getCompanyStatus(data.companyStatus)],
     ["Industry", capitalizeFirst(data.industry || "general")],
     ["Red Flags", `${data.redFlagsFound || 0} detected`],
     ["Contacts", formatContacts(data.contactsDetected || {})],
-    ["Professional Score", `${data.details?.professionalScore ?? 0}/10`]
+    ["Professional Score", `${data.details?.professionalScore ?? 0}/10`],
+    ...(data.source ? [["Source", `${data.source.fileType} (${data.source.extractedCharacters} chars read)`]] : [])
   ];
 
   rows.forEach(([label, value]) => {
@@ -124,6 +172,16 @@ function buildIssueList(flags) {
   return wrapper;
 }
 
+function buildTextPreview(text) {
+  const wrapper = document.createElement("details");
+  wrapper.className = "text-preview";
+  wrapper.append(
+    createTextElement("summary", "Extracted text preview"),
+    createTextElement("pre", text)
+  );
+  return wrapper;
+}
+
 function displayError(message) {
   resultBox.hidden = false;
   resultBox.replaceChildren(
@@ -137,6 +195,33 @@ function fillSample(type) {
   companyField.value = sample.company;
   jobTextField.value = sample.jobText;
   clearResult();
+}
+
+function updatePosterPreview() {
+  const file = posterFile.files?.[0];
+  posterPreview.replaceChildren();
+
+  if (!file) {
+    posterPreview.append(createTextElement("span", "No poster selected"));
+    return;
+  }
+
+  if (file.type.startsWith("image/")) {
+    const image = document.createElement("img");
+    image.alt = file.name;
+    image.src = URL.createObjectURL(file);
+    image.onload = () => URL.revokeObjectURL(image.src);
+    posterPreview.append(image);
+    return;
+  }
+
+  const pdfPreview = document.createElement("div");
+  pdfPreview.className = "pdf-preview";
+  pdfPreview.append(
+    createTextElement("strong", "PDF selected"),
+    createTextElement("span", file.name, "file-name")
+  );
+  posterPreview.append(pdfPreview);
 }
 
 function getCompanyStatus(status) {
@@ -160,10 +245,16 @@ function capitalizeFirst(value) {
 
 document.getElementById("legitSample").addEventListener("click", () => fillSample("legit"));
 document.getElementById("scamSample").addEventListener("click", () => fillSample("scam"));
+posterFile.addEventListener("change", updatePosterPreview);
 
 form.addEventListener("submit", (event) => {
   event.preventDefault();
   checkJob();
+});
+
+posterForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  analyzePoster();
 });
 
 document.addEventListener("keydown", (event) => {

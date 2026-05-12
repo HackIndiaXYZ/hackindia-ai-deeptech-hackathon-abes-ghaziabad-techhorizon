@@ -15,20 +15,39 @@
         <p class="subtitle">Check a job posting for scam signals, company trust, and posting quality.</p>
       </header>
 
-      <form id="analysisForm" class="analysis-form">
-        <label for="company">Company name</label>
-        <input id="company" name="company" autocomplete="organization" placeholder="Enter company name">
+      <div class="workspace">
+        <section class="tool-column poster-tool" aria-labelledby="poster-title">
+          <h2 id="poster-title">Poster analyzer</h2>
+          <form id="posterForm" class="analysis-form">
+            <label for="posterFile">Upload poster</label>
+            <input id="posterFile" name="poster" type="file" accept=".pdf,image/png,image/jpeg,image/webp">
 
-        <label for="jobText">Job description</label>
-        <textarea id="jobText" name="jobText" placeholder="Paste the job description here"></textarea>
+            <div id="posterPreview" class="poster-preview">
+              <span>No poster selected</span>
+            </div>
 
-        <div class="sample-actions" aria-label="Sample job postings">
-          <button id="legitSample" class="secondary success" type="button">Load Legit Sample</button>
-          <button id="scamSample" class="secondary danger" type="button">Load Scam Sample</button>
-        </div>
+            <button id="posterAnalyzeButton" class="primary" type="submit">Analyze Poster</button>
+          </form>
+        </section>
 
-        <button id="analyzeButton" class="primary" type="submit">Analyze Job</button>
-      </form>
+        <section class="tool-column manual-tool" aria-labelledby="manual-title">
+          <h2 id="manual-title">Text analyzer</h2>
+          <form id="analysisForm" class="analysis-form">
+            <label for="company">Company name</label>
+            <input id="company" name="company" autocomplete="organization" placeholder="Enter company name">
+
+            <label for="jobText">Job description</label>
+            <textarea id="jobText" name="jobText" placeholder="Paste the job description here"></textarea>
+
+            <div class="sample-actions" aria-label="Sample job postings">
+              <button id="legitSample" class="secondary success" type="button">Load Legit Sample</button>
+              <button id="scamSample" class="secondary danger" type="button">Load Scam Sample</button>
+            </div>
+
+            <button id="analyzeButton" class="primary" type="submit">Analyze Job</button>
+          </form>
+        </section>
+      </div>
 
       <section id="result" class="result-box" aria-live="polite" hidden></section>
     </section>
