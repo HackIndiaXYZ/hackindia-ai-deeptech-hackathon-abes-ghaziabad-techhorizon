@@ -4,12 +4,12 @@
  */
 
 const express = require("express");
+const path = require("path");
 const cors = require("cors");
 const helmet = require("helmet");
 const rateLimit = require("express-rate-limit");
 
 const heuristics = require('./heuristics');
-const companyRegistry = require('./companyRegistry');
 const CONFIG = require('./config');
 
 const app = express();
@@ -31,6 +31,20 @@ const limiter = rateLimit({
 app.use('/check', limiter);
 
 app.use(express.json({ limit: '10mb' }));
+app.use((err, req, res, next) => {
+  if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
+    return res.status(400).json({
+      error: 'Invalid JSON payload',
+      message: 'Request body must be valid JSON'
+    });
+  }
+  next(err);
+});
+app.use(express.static(path.join(__dirname)));
+
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
 
 // Input validation middleware
 const validateInput = (req, res, next) => {
@@ -172,9 +186,20 @@ app.use((req, res) => {
 ----------------------------- */
 
 const PORT = process.env.PORT || 3000;
+const server = require('http').createServer(app);
 
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`🚀 Job Trust System v2.0 running on http://localhost:${PORT}`);
   console.log(`📊 Statistics available at http://localhost:${PORT}/stats`);
   console.log(`💚 Health check at http://localhost:${PORT}/health`);
+});
+
+server.on('error', (error) => {
+  if (error.code === 'EADDRINUSE') {
+    console.error(`Port ${PORT} is already in use.`);
+    console.error('Either stop the process using that port or set a different PORT environment variable.');
+    process.exit(1);
+  }
+  console.error('Server error:', error);
+  process.exit(1);
 });
