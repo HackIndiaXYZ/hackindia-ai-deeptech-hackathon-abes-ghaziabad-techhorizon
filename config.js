@@ -4,6 +4,9 @@
  */
 
 const CONFIG = {
+  // Base score before trust signals and risk signals are applied.
+  BASE_SCORE: 60,
+
   // Scoring thresholds
   SCORE_THRESHOLDS: {
     SAFE: 80,

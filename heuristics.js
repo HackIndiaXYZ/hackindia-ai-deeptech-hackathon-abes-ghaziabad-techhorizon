@@ -113,7 +113,7 @@ class HeuristicsEngine {
     Object.keys(this.contextRules.combinations).forEach(combination => {
       const flags = combination.split(' + ');
       const foundCount = flags.filter(flag =>
-        foundFlags.some(f => f.flag.includes(flag))
+        foundFlags.some(foundFlag => foundFlag.includes(flag))
       ).length;
 
       if (foundCount === flags.length) {
@@ -128,8 +128,9 @@ class HeuristicsEngine {
    * Analyze job posting comprehensively
    */
   analyzeJob(companyName, jobText) {
-    // Start with base score
-    let totalScore = 100;
+    // Start below "safe" so legitimate signals can raise the score and
+    // different good postings do not all clamp to the same 100 result.
+    let totalScore = CONFIG.BASE_SCORE;
     const analysis = {
       company: {},
       text: {},

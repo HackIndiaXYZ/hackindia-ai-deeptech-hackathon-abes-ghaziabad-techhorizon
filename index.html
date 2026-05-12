@@ -1,263 +1,39 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Job Trust System</title>
-
-<style>
-    body {
-        margin: 0;
-        font-family: 'Segoe UI', sans-serif;
-        background: linear-gradient(135deg, #0f172a, #1e293b);
-        color: white;
-    }
-
-    .container {
-        max-width: 800px;
-        margin: 50px auto;
-        padding: 30px;
-        background: rgba(255,255,255,0.05);
-        border-radius: 20px;
-        box-shadow: 0 0 30px rgba(0,0,0,0.5);
-        backdrop-filter: blur(10px);
-    }
-
-    h1 {
-        text-align: center;
-        font-size: 32px;
-        margin-bottom: 10px;
-        color: #38bdf8;
-    }
-
-    p {
-        text-align: center;
-        color: #94a3b8;
-        margin-bottom: 30px;
-    }
-
-    input, textarea {
-        width: 100%;
-        padding: 12px;
-        margin-top: 10px;
-        margin-bottom: 15px;
-        border-radius: 10px;
-        border: none;
-        outline: none;
-        background: #1e293b;
-        color: white;
-    }
-
-    textarea {
-        height: 120px;
-        resize: none;
-    }
-
-    button {
-        width: 100%;
-        padding: 12px;
-        background: linear-gradient(90deg, #38bdf8, #6366f1);
-        border: none;
-        border-radius: 10px;
-        color: white;
-        font-size: 16px;
-        cursor: pointer;
-        transition: 0.3s;
-    }
-
-    button:hover {
-        transform: scale(1.03);
-    }
-
-    .result-box {
-        margin-top: 25px;
-        padding: 20px;
-        border-radius: 15px;
-        background: #0f172a;
-        border-left: 5px solid #38bdf8;
-    }
-
-    .score {
-        font-size: 22px;
-        font-weight: bold;
-    }
-
-    .safe { color: #22c55e; }
-    .warn { color: #facc15; }
-    .danger { color: #ef4444; }
-
-    .badge {
-        display: inline-block;
-        padding: 5px 10px;
-        border-radius: 8px;
-        margin-top: 10px;
-        font-size: 14px;
-    }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Job Trust System</title>
+  <link rel="stylesheet" href="/styles.css">
 </head>
-
 <body>
+  <main class="app-shell">
+    <section class="panel" aria-labelledby="page-title">
+      <header class="header">
+        <p class="eyebrow">Job Scam Analysis</p>
+        <h1 id="page-title">Job Trust System</h1>
+        <p class="subtitle">Check a job posting for scam signals, company trust, and posting quality.</p>
+      </header>
 
-<div class="container">
-    <h1>🧠 Job Trust System</h1>
-    <p>Advanced AI-powered job scam detection</p>
+      <form id="analysisForm" class="analysis-form">
+        <label for="company">Company name</label>
+        <input id="company" name="company" autocomplete="organization" placeholder="Enter company name">
 
-    <input id="company" placeholder="Enter Company Name">
+        <label for="jobText">Job description</label>
+        <textarea id="jobText" name="jobText" placeholder="Paste the job description here"></textarea>
 
-    <textarea id="jobText" placeholder="Paste job description here..."></textarea>
-
-    <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 12px;">
-        <button type="button" onclick="fillSample('legit')" style="flex:1; background: #22c55e;">Load Legit Sample</button>
-        <button type="button" onclick="fillSample('scam')" style="flex:1; background: #ef4444;">Load Scam Sample</button>
-    </div>
-
-    <button onclick="checkJob()">Analyze Job</button>
-
-    <div style="margin-top: 10px; font-size: 14px; color: #94a3b8; line-height: 1.6;">
-        Tip: paste the job description to analyze scam signals, company trust, and posting quality.
-    </div>
-
-    <div id="result" class="result-box" style="display:none;"></div>
-</div>
-
-<script>
-async function checkJob() {
-    const company = document.getElementById("company").value.trim();
-    const jobText = document.getElementById("jobText").value.trim();
-
-    if (!company || !jobText) {
-        alert("Please fill in both company name and job description");
-        return;
-    }
-
-    // Show loading state
-    const button = document.querySelector("button");
-    const originalText = button.textContent;
-    button.textContent = "🔍 Analyzing...";
-    button.disabled = true;
-
-    try {
-        const res = await fetch("http://localhost:3000/check", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ company, jobText })
-        });
-
-        if (!res.ok) {
-            throw new Error(`HTTP ${res.status}: ${await res.text()}`);
-        }
-
-        const data = await res.json();
-        displayResults(data);
-
-    } catch (error) {
-        console.error("Analysis failed:", error);
-        displayError(error.message);
-    } finally {
-        // Reset button
-        button.textContent = originalText;
-        button.disabled = false;
-    }
-}
-
-function displayResults(data) {
-    let colorClass = "safe";
-    if (data.score < 80) colorClass = "warn";
-    if (data.score < 50) colorClass = "danger";
-
-    // Risk level styling
-    const riskColors = {
-        low: "#22c55e",
-        medium: "#facc15",
-        high: "#ef4444"
-    };
-
-    document.getElementById("result").style.display = "block";
-
-    document.getElementById("result").innerHTML = `
-        <div class="score ${colorClass}">
-            🧠 Trust Score: ${data.score}/100
+        <div class="sample-actions" aria-label="Sample job postings">
+          <button id="legitSample" class="secondary success" type="button">Load Legit Sample</button>
+          <button id="scamSample" class="secondary danger" type="button">Load Scam Sample</button>
         </div>
 
-        <div class="badge" style="background: ${riskColors[data.risk] || '#6b7280'}">
-            ${data.label} (${data.risk} risk)
-        </div>
+        <button id="analyzeButton" class="primary" type="submit">Analyze Job</button>
+      </form>
 
-        <div style="margin-top: 15px; font-size: 14px; color: #94a3b8;">
-            <div><strong>🏢 Company:</strong> ${getCompanyStatus(data.companyStatus)}</div>
-            <div><strong>📊 Industry:</strong> ${capitalizeFirst(data.industry)}</div>
-            <div><strong>🚩 Red Flags:</strong> ${data.redFlagsFound} detected</div>
-            <div><strong>📧 Contacts:</strong> ${formatContacts(data.contactsDetected)}</div>
-            <div><strong>✍️ Professional Score:</strong> ${data.details.professionalScore}/10</div>
-        </div>
+      <section id="result" class="result-box" aria-live="polite" hidden></section>
+    </section>
+  </main>
 
-        ${data.details.redFlags.length > 0 ? `
-        <div style="margin-top: 15px; padding: 10px; background: rgba(239, 68, 68, 0.1); border-radius: 8px;">
-            <strong>⚠️ Detected Issues:</strong>
-            <ul style="margin: 5px 0; padding-left: 20px; color: #ef4444;">
-                ${data.details.redFlags.map(flag =>
-                    `<li>${flag.flag} (${flag.category.toLowerCase()})</li>`
-                ).join('')}
-            </ul>
-        </div>` : ''}
-
-        ${data.details.textQuality.issues > 0 ? `
-        <div style="margin-top: 10px; font-size: 12px; color: #facc15;">
-            📝 Text quality issues detected: ${data.details.textQuality.issues}
-        </div>` : ''}
-    `;
-}
-
-function displayError(message) {
-    document.getElementById("result").style.display = "block";
-    document.getElementById("result").innerHTML = `
-        <div class="score danger">
-            ❌ Analysis Failed
-        </div>
-        <div style="margin-top: 10px; color: #ef4444;">
-            ${message}
-        </div>
-    `;
-}
-
-function fillSample(type) {
-    const companyField = document.getElementById("company");
-    const jobTextField = document.getElementById("jobText");
-
-    if (type === 'legit') {
-        companyField.value = 'Google';
-        jobTextField.value = 'We are hiring a Senior Software Engineer with 5+ years experience in React and Node.js. Responsibilities include collaborating with product teams, writing clean code, and participating in architecture reviews. Benefits include competitive salary, health insurance, and stock options.';
-    } else {
-        companyField.value = 'QuickPay Remote';
-        jobTextField.value = 'WORK FROM HOME! Earn $5000 daily with no experience. No resume required. Pay registration fee and start immediately. Contact us on WhatsApp only for fast approval.';
-    }
-}
-
-function getCompanyStatus(status) {
-    const statusMap = {
-        verified: "✅ Verified",
-        unknown: "❓ Unknown",
-        suspicious: "⚠️ Suspicious",
-        invalid: "❌ Invalid"
-    };
-    return statusMap[status] || status;
-}
-
-function formatContacts(contacts) {
-    const total = (contacts.emails?.length || 0) + (contacts.phones?.length || 0) + (contacts.urls?.length || 0);
-    return total > 0 ? `${total} found` : "None detected";
-}
-
-function capitalizeFirst(str) {
-    return str.charAt(0).toUpperCase() + str.slice(1);
-}
-
-// Add keyboard shortcut (Enter to analyze)
-document.addEventListener('keydown', function(e) {
-    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
-        checkJob();
-    }
-});
-</script>
-
+  <script src="/app.js" defer></script>
 </body>
 </html>
